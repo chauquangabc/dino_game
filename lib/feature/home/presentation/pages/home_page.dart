@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/ui/responsive/app_responsive.dart';
@@ -85,6 +86,7 @@ class _HomePageState extends State<HomePage> {
     setState(() => _initialImagesReady = true);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
       _precacheRemainingImages();
     });
   }
