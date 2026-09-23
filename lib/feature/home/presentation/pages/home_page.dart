@@ -2,11 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/ui/responsive/app_responsive.dart';
-import '../../../../core/ui/widgets/app_splash.dart';
 import '../../../farm/presentation/pages/farm_page.dart';
 import '../../../lucky_wheel/presentation/pages/lucky_wheel_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
@@ -33,7 +31,6 @@ class _HomePageState extends State<HomePage> {
 
   bool _precacheStarted = false;
   bool _initialImagesReady = false;
-  bool _nativeSplashRemovalScheduled = false;
   late int _initialDecodeWidth;
 
   ImageProvider<Object> _imageProvider(int number, int decodeWidth) {
@@ -52,7 +49,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _scheduleNativeSplashRemoval();
     if (_precacheStarted) return;
 
     _precacheStarted = true;
@@ -62,20 +58,6 @@ class _HomePageState extends State<HomePage> {
       mediaQuery.devicePixelRatio,
     );
     _prepareInitialImages();
-  }
-
-  void _scheduleNativeSplashRemoval() {
-    if (_nativeSplashRemovalScheduled) return;
-    _nativeSplashRemovalScheduled = true;
-    precacheImage(
-      const AssetImage('assets/splash/splash.png'),
-      context,
-    ).whenComplete(() {
-      if (!mounted) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        FlutterNativeSplash.remove();
-      });
-    });
   }
 
   Future<void> _prepareInitialImages() async {
@@ -133,7 +115,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_initialImagesReady) return const AppSplash();
+    if (!_initialImagesReady) return const SizedBox.expand();
 
     return Scaffold(
       backgroundColor: const Color(0xff102d26),
@@ -248,6 +230,15 @@ class _HomeHud extends StatelessWidget {
   final VoidCallback onLucky;
   final VoidCallback onRanking;
 
+  static const double _panelAspect = 809 / 1945;
+
+  static const List<double> _slotXs = [0.1581, 0.3239, 0.4995, 0.6756, 0.8422];
+  static const double _slotY = 0.533;
+  static const double _labelY = 0.8;
+  static const double _slotRatio = 0.17;
+  static const double _labelRatioW = 0.18;
+  static const double _labelRatioH = 0.038;
+
   @override
   Widget build(BuildContext context) {
     final landscape = viewport.width > viewport.height;
@@ -256,59 +247,67 @@ class _HomeHud extends StatelessWidget {
       math.min(viewport.width * .75, 540.0),
       heightLimit * 2.4,
     );
+    final double height = width * _panelAspect;
+
     final actions = [
-      _HudAction('Profile', Icons.person_rounded, onProfile),
-      _HudAction('Store', Icons.storefront_rounded, onStore),
-      _HudAction('Farm', Icons.park_rounded, onFarm),
-      _HudAction('Lucky', Icons.casino_rounded, onLucky),
-      _HudAction('Ranking', Icons.emoji_events_rounded, onRanking),
+      _HudAction('Profile', 'assets/HUD/ring-profile-empty.webp', onProfile),
+      _HudAction('Store', 'assets/HUD/store-icon.webp', onStore),
+      _HudAction('Farm', 'assets/HUD/icon-dinosaur-farm.webp', onFarm),
+      _HudAction('Lucky', 'assets/HUD/icon-lucky-wheel.webp', onLucky),
+      _HudAction('Ranking', 'assets/HUD/leaderboard-icon.webp', onRanking),
     ];
+
+    final slotSize = width * _slotRatio;
 
     return Center(
       child: SizedBox(
         width: width,
+        height: height,
         child: Stack(
           clipBehavior: Clip.none,
-          alignment: Alignment.topCenter,
           children: [
-            Positioned(top: -18, left: width * .16, child: const _Rope()),
-            Positioned(top: -18, right: width * .16, child: const _Rope()),
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                width * .035,
-                width * .045,
-                width * .035,
-                width * .025,
-              ),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xff9d5b2c), Color(0xff5b2f19)],
-                ),
-                borderRadius: BorderRadius.circular(width * .045),
-                border: Border.all(
-                  color: const Color(0xffffd36b),
-                  width: math.max(2.0, width * .009),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x88000000),
-                    blurRadius: 10,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final action in actions)
-                    Expanded(
-                      child: _HudButton(action: action, width: width),
-                    ),
-                ],
+            Positioned.fill(
+              child: Image.asset(
+                'assets/HUD/board_hud.webp',
+                fit: BoxFit.fill,
+                filterQuality: FilterQuality.medium,
               ),
             ),
+            for (var i = 0; i < actions.length; i++) ...[
+              // Icon trên bệ đá của từng ô.
+              Positioned(
+                left: (_slotXs[i] - _slotRatio / 2) * width,
+                top: _slotY * height - slotSize / 2,
+                width: slotSize,
+                height: slotSize,
+                child: _HudButton(action: actions[i]),
+              ),
+              // Bảng tên dưới bệ đá.
+              Positioned(
+                left: (_slotXs[i] - _labelRatioW / 2) * width,
+                top: _labelY * height - (width * _labelRatioH) / 2,
+                width: width * _labelRatioW,
+                height: width * _labelRatioH,
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      actions[i].label,
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: const Color(0xff7a3f14),
+                        fontSize: math.max(8, width * .03),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: .5,
+                        shadows: const [
+                          Shadow(color: Colors.white70, blurRadius: 1),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -316,91 +315,30 @@ class _HomeHud extends StatelessWidget {
   }
 }
 
-class _Rope extends StatelessWidget {
-  const _Rope();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 5,
-      height: 24,
-      decoration: BoxDecoration(
-        color: const Color(0xffd1a15a),
-        borderRadius: BorderRadius.circular(3),
-        boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 2)],
-      ),
-    );
-  }
-}
-
 class _HudAction {
-  const _HudAction(this.label, this.icon, this.onTap);
+  const _HudAction(this.label, this.asset, this.onTap);
 
   final String label;
-  final IconData icon;
+  final String asset;
   final VoidCallback onTap;
 }
 
 class _HudButton extends StatelessWidget {
-  const _HudButton({required this.action, required this.width});
+  const _HudButton({required this.action});
 
   final _HudAction action;
-  final double width;
 
   @override
   Widget build(BuildContext context) {
-    final iconSize = width * .092;
     return Tooltip(
       message: action.label,
       child: InkWell(
-        borderRadius: BorderRadius.circular(iconSize),
+        borderRadius: BorderRadius.circular(12),
         onTap: action.onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: iconSize,
-                height: iconSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xffffef9a), Color(0xffe58a2a)],
-                  ),
-                  border: Border.all(color: const Color(0xfffff0b5), width: 2),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black45,
-                      blurRadius: 3,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  action.icon,
-                  size: iconSize * .58,
-                  color: const Color(0xff4b2716),
-                ),
-              ),
-              const SizedBox(height: 3),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  action.label,
-                  maxLines: 1,
-                  style: TextStyle(
-                    color: const Color(0xffffedb2),
-                    fontSize: math.max(8, width * .025),
-                    fontWeight: FontWeight.w800,
-                    shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
-                  ),
-                ),
-              ),
-            ],
-          ),
+        child: Image.asset(
+          action.asset,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.medium,
         ),
       ),
     );

@@ -16,7 +16,7 @@ final class DioClient {
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 15),
         sendTimeout: const Duration(seconds: 15),
-        headers: const {Headers.acceptHeader: 'application/json'},
+        responseType: ResponseType.json,
       ),
     );
 
@@ -26,7 +26,7 @@ final class DioClient {
       dio.interceptors.add(
         PrettyDioLogger(
           requestHeader: false,
-          requestBody: false,
+          requestBody: true,
           responseHeader: false,
           responseBody: false,
         ),
