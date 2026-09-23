@@ -118,6 +118,7 @@ class _HomePageState extends State<HomePage> {
     if (!_initialImagesReady) return const SizedBox.expand();
 
     return Scaffold(
+      backgroundColor: Colors.blue[600],
       body: LayoutBuilder(
         builder: (context, constraints) {
           final mediaQuery = MediaQuery.of(context);
@@ -126,14 +127,12 @@ class _HomePageState extends State<HomePage> {
             viewport,
             mediaQuery.devicePixelRatio,
           );
-          final mapWidth = math.min(viewport.width, AppResponsive.maxMapWidth);
 
           return Stack(
             children: [
               Align(
                 alignment: Alignment.center,
                 child: SizedBox(
-                  width: mapWidth,
                   height: viewport.height,
                   child: _LevelMap(
                     itemCount: _itemCount,
@@ -143,7 +142,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Positioned(
-                top: mediaQuery.padding.top + 8,
+                top: mediaQuery.padding.top,
                 left: mediaQuery.padding.left + 8,
                 right: mediaQuery.padding.right + 8,
                 child: _HomeHud(
@@ -181,6 +180,7 @@ class _LevelMap extends StatelessWidget {
     return ListView.builder(
       key: const PageStorageKey('home-level-map'),
       padding: EdgeInsets.only(
+        // top: 0,
         top: MediaQuery.viewPaddingOf(context).top,
         left: 0,
         right: 0,
