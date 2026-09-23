@@ -27,7 +27,7 @@ extension HomeRouter on HomePage {
 
 class _HomePageState extends State<HomePage> {
   static const _itemCount = 8;
-  static const _initialPrecacheCount = 3;
+  static const _initialPrecacheCount = 5;
 
   bool _precacheStarted = false;
   bool _initialImagesReady = false;
@@ -118,7 +118,6 @@ class _HomePageState extends State<HomePage> {
     if (!_initialImagesReady) return const SizedBox.expand();
 
     return Scaffold(
-      backgroundColor: const Color(0xff102d26),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final mediaQuery = MediaQuery.of(context);
@@ -131,7 +130,6 @@ class _HomePageState extends State<HomePage> {
 
           return Stack(
             children: [
-              const Positioned.fill(child: _MapSideBackground()),
               Align(
                 alignment: Alignment.center,
                 child: SizedBox(
@@ -179,9 +177,15 @@ class _LevelMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     return ListView.builder(
       key: const PageStorageKey('home-level-map'),
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.only(
+        top: MediaQuery.viewPaddingOf(context).top,
+        left: 0,
+        right: 0,
+        bottom: bottomInset,
+      ),
       scrollCacheExtent: ScrollCacheExtent.pixels(500),
       itemCount: itemCount,
       reverse: true,
@@ -194,21 +198,6 @@ class _LevelMap extends StatelessWidget {
           filterQuality: FilterQuality.medium,
         );
       },
-    );
-  }
-}
-
-class _MapSideBackground extends StatelessWidget {
-  const _MapSideBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xff071b17), Color(0xff1b4b36), Color(0xff071b17)],
-        ),
-      ),
     );
   }
 }
