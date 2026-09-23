@@ -69,6 +69,17 @@ flutter:
   assets:
     - assets/
     - assets/background/
+    - assets/splash/
+
+flutter_native_splash:
+  color: "#183B31"
+  image: assets/splash/splash.png
+  android_gravity: center
+  ios_content_mode: scaleAspectFit
+  fullscreen: true
+  android_12:
+    color: "#183B31"
+    image: assets/splash/splash.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
