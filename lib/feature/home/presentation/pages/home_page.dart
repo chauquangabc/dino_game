@@ -247,7 +247,7 @@ class _HomeHud extends StatelessWidget {
     final double height = width * _panelAspect;
 
     final actions = [
-      _HudAction('Profile', 'assets/HUD/ring-profile-empty.webp', onProfile),
+      _HudAction('Profile', 'assets/HUD/ring_profile_background.webp', onProfile),
       _HudAction('Store', 'assets/HUD/store-icon.webp', onStore),
       _HudAction('Farm', 'assets/HUD/icon-dinosaur-farm.webp', onFarm),
       _HudAction('Lucky', 'assets/HUD/icon-lucky-wheel.webp', onLucky),
