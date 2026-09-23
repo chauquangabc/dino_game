@@ -43,6 +43,7 @@ dependencies:
   pretty_dio_logger: ^1.4.0
   flutter_secure_storage: ^11.2.0
   get_it: ^9.3.0
+  flutter_native_splash: ^2.4.8
 
 dev_dependencies:
   flutter_test:
