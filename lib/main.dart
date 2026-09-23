@@ -1,7 +1,13 @@
+import 'package:dino/core/network/session_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'core/di/injection.dart';
+
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  configureDependencies();
+  await sl<SessionManager>().initialize();
   runApp(const MyApp());
 }
 
