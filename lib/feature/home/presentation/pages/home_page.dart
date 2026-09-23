@@ -232,10 +232,16 @@ class _HomeHud extends StatelessWidget {
 
   static const double _panelAspect = 809 / 1945;
 
-  static const List<double> _slotXs = [0.1581, 0.3239, 0.4995, 0.6756, 0.8422];
-  static const double _slotY = 0.533;
-  static const double _labelY = 0.8;
-  static const double _slotRatio = 0.17;
+  static const List<double> _slotXs = [
+    0.15,
+    0.3239,
+    0.4995,
+    0.6756,
+    0.85,
+  ]; //PositionX icon
+  static const double _slotY = 0.533; //PositionY icon
+  static const double _labelY = 0.79; //PositionY label
+  static const double _slotRatio = 0.14; //Size icon
   static const double _labelRatioW = 0.18;
   static const double _labelRatioH = 0.038;
 
