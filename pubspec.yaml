@@ -74,6 +74,7 @@ flutter:
     - assets/HUD/
     - assets/level/
     - assets/character/
+    - assets/rank/
     - assets/store/
     - assets/store/boosters/
     - assets/store/chests/

@@ -1,0 +1,166 @@
+import '../domain/ranking_entry.dart';
+import '../domain/ranking_state.dart';
+import 'ranking_preview_config.dart';
+
+abstract final class RankingMockData {
+  static RankingState load() {
+    if (RankingPreviewConfig.mode == RankingDataMode.empty) {
+      return const RankingState();
+    }
+    return const RankingState(
+      progressEntries: _progress,
+      weeklyEntries: _weekly,
+    );
+  }
+
+  static const _progress = <RankingEntry>[
+    RankingEntry(
+      rank: 1,
+      displayName: 'DinoKing',
+      avatarAsset: 'assets/character/dino-akatsuki.webp',
+      completedLevel: 98,
+      totalScore: 298450,
+      weeklyScore: 48200,
+      weeklyCompletedLevels: 18,
+      title: 'APEX OVERLORD',
+      titleColor: RankingTitleColor.red,
+    ),
+    RankingEntry(
+      rank: 2,
+      displayName: 'StoneRex',
+      avatarAsset: 'assets/character/dino-batman.webp',
+      completedLevel: 87,
+      totalScore: 256320,
+      weeklyScore: 45100,
+      weeklyCompletedLevels: 17,
+      title: 'ANCIENT CHAMPION',
+      titleColor: RankingTitleColor.blue,
+    ),
+    RankingEntry(
+      rank: 3,
+      displayName: 'LeafLord',
+      avatarAsset: 'assets/character/dino-doraemon.webp',
+      completedLevel: 76,
+      totalScore: 198450,
+      weeklyScore: 40950,
+      weeklyCompletedLevels: 15,
+      title: 'VALLEY GUARDIAN',
+      titleColor: RankingTitleColor.green,
+    ),
+    RankingEntry(
+      rank: 4,
+      displayName: 'YOU',
+      avatarAsset: 'assets/character/babyDino.webp',
+      completedLevel: 68,
+      totalScore: 172610,
+      weeklyScore: 38720,
+      weeklyCompletedLevels: 14,
+      title: 'JUNGLE PATHFINDER',
+      titleColor: RankingTitleColor.purple,
+      isCurrentUser: true,
+    ),
+    RankingEntry(
+      rank: 5,
+      displayName: 'SunnySpikes',
+      avatarAsset: 'assets/character/dino-spiderman.webp',
+      completedLevel: 61,
+      totalScore: 164380,
+      weeklyScore: 34680,
+      weeklyCompletedLevels: 12,
+      title: 'HERBIVORE HERO',
+      titleColor: RankingTitleColor.orange,
+    ),
+    RankingEntry(
+      rank: 6,
+      displayName: 'Captain Cretaceous',
+      avatarAsset: 'assets/character/dino-captain-america.webp',
+      completedLevel: 54,
+      totalScore: 151240,
+      weeklyScore: 31240,
+      weeklyCompletedLevels: 11,
+      title: 'ISLAND SCOUT',
+      titleColor: RankingTitleColor.blue,
+    ),
+    RankingEntry(
+      rank: 7,
+      displayName: 'WebRaptor',
+      avatarAsset: 'assets/character/dino-spiderman.webp',
+      completedLevel: 49,
+      totalScore: 138400,
+      weeklyScore: 29100,
+      weeklyCompletedLevels: 10,
+      title: 'EGG HUNTER',
+      titleColor: RankingTitleColor.green,
+    ),
+  ];
+
+  static const _weekly = <RankingEntry>[
+    RankingEntry(
+      rank: 1,
+      displayName: 'StoneRex',
+      avatarAsset: 'assets/character/dino-batman.webp',
+      completedLevel: 87,
+      totalScore: 256320,
+      weeklyScore: 45100,
+      weeklyCompletedLevels: 17,
+      title: '17 LEVELS',
+      titleColor: RankingTitleColor.red,
+    ),
+    RankingEntry(
+      rank: 2,
+      displayName: 'DinoKing',
+      avatarAsset: 'assets/character/dino-akatsuki.webp',
+      completedLevel: 98,
+      totalScore: 298450,
+      weeklyScore: 43200,
+      weeklyCompletedLevels: 16,
+      title: '16 LEVELS',
+      titleColor: RankingTitleColor.blue,
+    ),
+    RankingEntry(
+      rank: 3,
+      displayName: 'LeafLord',
+      avatarAsset: 'assets/character/dino-doraemon.webp',
+      completedLevel: 76,
+      totalScore: 198450,
+      weeklyScore: 40950,
+      weeklyCompletedLevels: 15,
+      title: '15 LEVELS',
+      titleColor: RankingTitleColor.green,
+    ),
+    RankingEntry(
+      rank: 4,
+      displayName: 'YOU',
+      avatarAsset: 'assets/character/babyDino.webp',
+      completedLevel: 68,
+      totalScore: 172610,
+      weeklyScore: 38720,
+      weeklyCompletedLevels: 14,
+      title: '14 LEVELS',
+      titleColor: RankingTitleColor.purple,
+      isCurrentUser: true,
+    ),
+    RankingEntry(
+      rank: 5,
+      displayName: 'SunnySpikes',
+      avatarAsset: 'assets/character/dino-spiderman.webp',
+      completedLevel: 61,
+      totalScore: 164380,
+      weeklyScore: 34680,
+      weeklyCompletedLevels: 12,
+      title: '12 LEVELS',
+      titleColor: RankingTitleColor.orange,
+    ),
+    RankingEntry(
+      rank: 6,
+      displayName: 'Captain Cretaceous',
+      avatarAsset: 'assets/character/dino-captain-america.webp',
+      completedLevel: 54,
+      totalScore: 151240,
+      weeklyScore: 31240,
+      weeklyCompletedLevels: 11,
+      title: '11 LEVELS',
+      titleColor: RankingTitleColor.blue,
+    ),
+  ];
+}

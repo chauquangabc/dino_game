@@ -87,13 +87,9 @@ class _StorePageState extends State<StorePage> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _close,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                  child: const ColoredBox(color: Color(0x8C080C18)),
-                ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                child: const ColoredBox(color: Color(0x8C080C18)),
               ),
             ),
             Positioned.fill(
