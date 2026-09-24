@@ -72,6 +72,8 @@ flutter:
     - assets/background/
     - assets/splash/
     - assets/HUD/
+    - assets/level/
+    - assets/character/
 
 flutter_native_splash:
   color: "#183B31"
