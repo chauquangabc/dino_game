@@ -74,6 +74,11 @@ flutter:
     - assets/HUD/
     - assets/level/
     - assets/character/
+    - assets/store/
+    - assets/store/boosters/
+    - assets/store/chests/
+    - assets/store/coins/
+    - assets/store/pets/
 
 flutter_native_splash:
   color: "#183B31"

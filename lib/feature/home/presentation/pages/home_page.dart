@@ -543,9 +543,22 @@ class _LevelCheckpointState extends State<_LevelCheckpoint>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _pulse = Tween<double>(begin: 1, end: 1.06).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
+    _pulse = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(
+          begin: 0,
+          end: 1,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 1,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(
+          begin: 1,
+          end: 0,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 1,
+      ),
+    ]).animate(_pulseController);
     _shake =
         TweenSequence<Offset>([
           TweenSequenceItem(
@@ -591,7 +604,7 @@ class _LevelCheckpointState extends State<_LevelCheckpoint>
 
   void _syncPulse() {
     if (widget.status == MapLevelStatus.current) {
-      _pulseController.repeat(reverse: true);
+      _pulseController.repeat();
     } else {
       _pulseController.stop();
       _pulseController.value = 0;
@@ -635,8 +648,56 @@ class _LevelCheckpointState extends State<_LevelCheckpoint>
         onTap: _handleTap,
         child: SlideTransition(
           position: _shake,
-          child: ScaleTransition(
-            scale: _pulse,
+          child: AnimatedBuilder(
+            animation: _pulse,
+            builder: (context, child) {
+              final strength = widget.status == MapLevelStatus.current
+                  ? _pulse.value
+                  : 0.0;
+              final brightness = 1 + (.3 * strength);
+
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: strength == 0
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: const Color(
+                              0xfffff3a0,
+                            ).withValues(alpha: .8 * strength),
+                            blurRadius: 9 * strength,
+                            spreadRadius: 1.5 * strength,
+                          ),
+                        ],
+                ),
+                child: ColorFiltered(
+                  colorFilter: ColorFilter.matrix([
+                    brightness,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    brightness,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    brightness,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                  ]),
+                  child: child,
+                ),
+              );
+            },
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -649,21 +710,14 @@ class _LevelCheckpointState extends State<_LevelCheckpoint>
                       : checkpoint,
                 ),
                 if (locked)
-                  const FractionallySizedBox(
-                    widthFactor: .36,
-                    heightFactor: .36,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: Icon(
-                        Icons.lock_rounded,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black87,
-                            blurRadius: 4,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+                  Align(
+                    alignment: Alignment(0, -0.3),
+                    child: const FractionallySizedBox(
+                      widthFactor: .36,
+                      heightFactor: .36,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: Icon(Icons.lock_rounded, color: Colors.black45),
                       ),
                     ),
                   )
