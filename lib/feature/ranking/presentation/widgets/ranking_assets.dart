@@ -10,6 +10,7 @@ abstract final class RankingAssets {
   static const row = '$root/row-blank.webp';
   static const avatarFrame = '$root/avatar-frame.webp';
   static const levelBadge = '$root/level-badge-blank.webp';
+  static const coin = 'assets/store/coins/icon-coin.webp';
 
   static String rank(int rank) => switch (rank) {
     1 => '$root/rank-gold-blank.webp',

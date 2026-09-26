@@ -94,7 +94,7 @@ class RankingPopup extends StatelessWidget {
                   ),
                   Positioned(
                     left: panelWidth * .136,
-                    top: panelWidth * .171,
+                    top: panelWidth * .16,
                     width: panelWidth * .728,
                     child: RankingTabs(
                       panelWidth: panelWidth,
@@ -106,7 +106,9 @@ class RankingPopup extends StatelessWidget {
                     left: panelWidth * .136,
                     top: panelWidth * .2405,
                     width: panelWidth * .728,
-                    height: panelWidth * .5995,
+                    // CSS uses 59.95% of the panel height (about .749 of its
+                    // width), which fits six .1244-wide rows exactly.
+                    height: panelHeight * .65,
                     child: ClipRect(
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 160),
@@ -114,7 +116,9 @@ class RankingPopup extends StatelessWidget {
                           key: ValueKey(state.selectedBoard),
                           entries: state.visibleEntries,
                           board: state.selectedBoard,
-                          rowHeight: panelWidth * .1244,
+                          // Matches the HTML layout: six rows sit flush inside
+                          // the list viewport with no vertical gap.
+                          rowHeight: panelWidth * .15,
                         ),
                       ),
                     ),

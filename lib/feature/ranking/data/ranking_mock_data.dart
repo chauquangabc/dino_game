@@ -92,6 +92,28 @@ abstract final class RankingMockData {
       title: 'EGG HUNTER',
       titleColor: RankingTitleColor.green,
     ),
+    RankingEntry(
+      rank: 8,
+      displayName: 'StoneRex',
+      avatarAsset: 'assets/character/dino-batman.webp',
+      completedLevel: 87,
+      totalScore: 256320,
+      weeklyScore: 45100,
+      weeklyCompletedLevels: 17,
+      title: 'ANCIENT CHAMPION',
+      titleColor: RankingTitleColor.blue,
+    ),
+    RankingEntry(
+      rank: 9,
+      displayName: 'StoneRex',
+      avatarAsset: 'assets/character/dino-batman.webp',
+      completedLevel: 87,
+      totalScore: 256320,
+      weeklyScore: 45100,
+      weeklyCompletedLevels: 17,
+      title: 'ANCIENT CHAMPION',
+      titleColor: RankingTitleColor.blue,
+    ),
   ];
 
   static const _weekly = <RankingEntry>[
@@ -99,11 +121,11 @@ abstract final class RankingMockData {
       rank: 1,
       displayName: 'StoneRex',
       avatarAsset: 'assets/character/dino-batman.webp',
-      completedLevel: 87,
+      completedLevel: 1000,
       totalScore: 256320,
       weeklyScore: 45100,
       weeklyCompletedLevels: 17,
-      title: '17 LEVELS',
+      title: 'ISLAND SCOUT',
       titleColor: RankingTitleColor.red,
     ),
     RankingEntry(
@@ -114,7 +136,7 @@ abstract final class RankingMockData {
       totalScore: 298450,
       weeklyScore: 43200,
       weeklyCompletedLevels: 16,
-      title: '16 LEVELS',
+      title: 'HERBIVORE HERO',
       titleColor: RankingTitleColor.blue,
     ),
     RankingEntry(
@@ -125,7 +147,7 @@ abstract final class RankingMockData {
       totalScore: 198450,
       weeklyScore: 40950,
       weeklyCompletedLevels: 15,
-      title: '15 LEVELS',
+      title: 'JUNGLE PATHFINDER',
       titleColor: RankingTitleColor.green,
     ),
     RankingEntry(
@@ -136,7 +158,7 @@ abstract final class RankingMockData {
       totalScore: 172610,
       weeklyScore: 38720,
       weeklyCompletedLevels: 14,
-      title: '14 LEVELS',
+      title: 'VALLEY GUARDIAN',
       titleColor: RankingTitleColor.purple,
       isCurrentUser: true,
     ),
@@ -148,7 +170,7 @@ abstract final class RankingMockData {
       totalScore: 164380,
       weeklyScore: 34680,
       weeklyCompletedLevels: 12,
-      title: '12 LEVELS',
+      title: 'ANCIENT CHAMPION',
       titleColor: RankingTitleColor.orange,
     ),
     RankingEntry(
@@ -159,7 +181,7 @@ abstract final class RankingMockData {
       totalScore: 151240,
       weeklyScore: 31240,
       weeklyCompletedLevels: 11,
-      title: '11 LEVELS',
+      title: 'APEX OVERLORD',
       titleColor: RankingTitleColor.blue,
     ),
   ];
