@@ -100,7 +100,7 @@ abstract final class StoreCatalog {
       name: 'GOLD CHEST',
       quantity: 1,
       price: 1500,
-      assetPath: 'assets/store/chests/icon-chest.webp',
+      assetPath: 'assets/store/chests/chest-gold.webp',
       sortOrder: 10,
       grantType: StoreGrantType.chest,
       grantId: 'chest_gold',
