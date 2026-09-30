@@ -80,6 +80,7 @@ flutter:
     - assets/store/chests/
     - assets/store/coins/
     - assets/store/pets/
+    - assets/lucky_wheel/
 
 flutter_native_splash:
   color: "#183B31"
