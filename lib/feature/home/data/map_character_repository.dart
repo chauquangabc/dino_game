@@ -1,22 +1,27 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import '../../../core/storage/game_local_store.dart';
+import '../../profile/data/dino_collection_repository.dart';
 import '../domain/map_character_config.dart';
 
 class MapCharacterRepository {
-  MapCharacterRepository({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage();
+  MapCharacterRepository({GameLocalStore? store, FlutterSecureStorage? storage})
+    : _store =
+          store ??
+          (storage == null
+              ? GameLocalStore.shared
+              : GameLocalStore(storage: storage));
+  final GameLocalStore _store;
+  Stream<void> get changes => _store.changes;
 
-  static const _equippedCharacterKey = 'dino-line-98-equipped-character';
+  Future<MapCharacter> loadEquipped() => _store.transaction(
+    (save) => MapCharacterConfig.byId(CollectionData.read(save).equippedId),
+  );
 
-  final FlutterSecureStorage _storage;
-
-  Future<MapCharacter> loadEquipped() async {
-    final id = await _storage.read(key: _equippedCharacterKey);
-    return MapCharacterConfig.byId(id);
-  }
-
-  Future<void> saveEquipped(String id) {
-    final character = MapCharacterConfig.byId(id);
-    return _storage.write(key: _equippedCharacterKey, value: character.id);
-  }
+  Future<void> saveEquipped(String id) => _store.transaction((save) {
+    final collection = CollectionData.read(save);
+    if (!collection.equip(id)) {
+      throw StateError('Dino must be unlocked before equipping');
+    }
+    collection.persist(save);
+  });
 }

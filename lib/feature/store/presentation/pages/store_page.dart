@@ -12,14 +12,22 @@ import '../../domain/store_state.dart';
 import '../widgets/store_popup.dart';
 
 class StorePage extends StatefulWidget {
-  const StorePage({super.key});
+  const StorePage({
+    super.key,
+    this.initialCategory = StoreCategory.boosters,
+    this.repository,
+  });
+
+  final StoreCategory initialCategory;
+  final StoreRepository? repository;
 
   @override
   State<StorePage> createState() => _StorePageState();
 }
 
 class _StorePageState extends State<StorePage> {
-  final StoreRepository _repository = StoreRepository();
+  late final StoreRepository _repository =
+      widget.repository ?? StoreRepository();
   final FocusNode _focusNode = FocusNode();
   StoreState _state = const StoreState();
   Timer? _toastTimer;
@@ -27,6 +35,7 @@ class _StorePageState extends State<StorePage> {
   @override
   void initState() {
     super.initState();
+    _state = StoreState(selectedCategory: widget.initialCategory);
     _load();
   }
 
@@ -38,9 +47,22 @@ class _StorePageState extends State<StorePage> {
   }
 
   Future<void> _load() async {
-    final loaded = await _repository.load();
-    if (!mounted) return;
-    setState(() => _state = loaded);
+    try {
+      final loaded = await _repository.load();
+      if (!mounted) return;
+      setState(
+        () =>
+            _state = loaded.copyWith(selectedCategory: _state.selectedCategory),
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _state = _state.copyWith(
+            message: 'Could not load store. Please reopen it.',
+          ),
+        );
+      }
+    }
   }
 
   void _selectCategory(StoreCategory category) {
@@ -50,21 +72,32 @@ class _StorePageState extends State<StorePage> {
   bool _isOwned(StoreProduct product) => _repository.isOwned(_state, product);
 
   Future<void> _buy(StoreProduct product) async {
-    if (_state.purchaseInProgress) return;
+    if (_state.purchaseInProgress || _state.isLoading) return;
     setState(() => _state = _state.copyWith(purchaseInProgress: true));
-    final result = await _repository.purchase(_state, product);
-    if (!mounted) return;
-    setState(
-      () => _state = result.state.copyWith(
-        purchaseInProgress: false,
-        message: result.message,
-      ),
-    );
-    _toastTimer?.cancel();
-    _toastTimer = Timer(const Duration(milliseconds: 1500), () {
+    try {
+      final result = await _repository.purchase(_state, product);
       if (!mounted) return;
-      setState(() => _state = _state.copyWith(clearMessage: true));
-    });
+      setState(
+        () => _state = result.state.copyWith(
+          purchaseInProgress: false,
+          message: result.message,
+        ),
+      );
+      _toastTimer?.cancel();
+      _toastTimer = Timer(const Duration(milliseconds: 1500), () {
+        if (!mounted) return;
+        setState(() => _state = _state.copyWith(clearMessage: true));
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _state = _state.copyWith(
+            purchaseInProgress: false,
+            message: 'Could not complete purchase. Please reopen the store.',
+          ),
+        );
+      }
+    }
   }
 
   void _close() {
@@ -147,7 +180,16 @@ extension StoreRouter on StorePage {
       barrierDismissible: false,
       transitionDuration: const Duration(milliseconds: 220),
       reverseTransitionDuration: const Duration(milliseconds: 180),
-      child: const StorePage(),
+      child: StorePage(
+        initialCategory:
+            StoreCategory.values
+                .where(
+                  (category) =>
+                      category.name == state.uri.queryParameters['category'],
+                )
+                .firstOrNull ??
+            StoreCategory.boosters,
+      ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(opacity: animation, child: child);
       },

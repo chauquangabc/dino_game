@@ -3,104 +3,25 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../../domain/dino_collection_item.dart';
+import '../../domain/profile_state.dart';
 import 'profile_assets.dart';
 
-enum ProfileTab { collection, chests }
-
-class ProfilePopup extends StatefulWidget {
-  const ProfilePopup({super.key, required this.onClose});
-
-  final VoidCallback onClose;
-
-  @override
-  State<ProfilePopup> createState() => _ProfilePopupState();
-}
-
-class _ProfilePopupState extends State<ProfilePopup> {
-  static const _dinos = [
-    (
-      name: 'Spiderman',
-      asset: 'assets/character/dino-spiderman.webp',
-      isUnlocked: true,
-      fragments: 8,
-      species: 'Triceratops',
-      rarity: 'Rare',
-    ),
-    (
-      name: 'Akatsuki',
-      asset: 'assets/character/dino-akatsuki.webp',
-      isUnlocked: false,
-      fragments: 3,
-      species: 'Stegosaurus',
-      rarity: 'Epic',
-    ),
-    (
-      name: 'Batman',
-      asset: 'assets/character/dino-batman.webp',
-      isUnlocked: false,
-      fragments: 0,
-      species: 'Triceratops',
-      rarity: 'Epic',
-    ),
-    (
-      name: 'Captain',
-      asset: 'assets/character/dino-captain-america.webp',
-      isUnlocked: false,
-      fragments: 5,
-      species: 'T-Rex',
-      rarity: 'Rare',
-    ),
-    (
-      name: 'Doraemon',
-      asset: 'assets/character/dino-doraemon.webp',
-      isUnlocked: false,
-      fragments: 0,
-      species: 'Triceratops',
-      rarity: 'Legendary',
-    ),
-  ];
-
-  static const _chests = [
-    (asset: ProfileAssets.chestFragment, quantity: 2),
-    (asset: ProfileAssets.chestGold, quantity: 0),
-    (asset: ProfileAssets.chestItem, quantity: 0),
-    (asset: ProfileAssets.chestMixed, quantity: 0),
-    (asset: ProfileAssets.chestSpecial, quantity: 0),
-  ];
-
-  ProfileTab _tab = ProfileTab.collection;
-  int _selected = 0;
-  String _name = 'Dino Trainer';
-
-  Future<void> _editName() async {
-    final controller = TextEditingController(text: _name);
-    final value = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xffffe2aa),
-        title: const Text('Edit name'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 18,
-          onSubmitted: (value) => Navigator.pop(context, value),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (!mounted || value == null || value.trim().isEmpty) return;
-    setState(() => _name = value.trim());
-  }
+class ProfilePopup extends StatelessWidget {
+  const ProfilePopup({
+    super.key,
+    required this.state,
+    required this.onClose,
+    required this.onEdit,
+    required this.onTab,
+    required this.onSelected,
+    required this.onAction,
+    required this.onChest,
+  });
+  final ProfileState state;
+  final VoidCallback onClose, onEdit, onAction;
+  final ValueChanged<ProfileTab> onTab;
+  final ValueChanged<String> onSelected, onChest;
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -139,23 +60,23 @@ class _ProfilePopupState extends State<ProfilePopup> {
               child: landscape
                   ? _LandscapeProfile(
                       size: size,
-                      tab: _tab,
-                      selected: _selected,
-                      name: _name,
-                      onClose: widget.onClose,
-                      onEdit: _editName,
-                      onTab: (tab) => setState(() => _tab = tab),
-                      onSelected: (index) => setState(() => _selected = index),
+                      state: state,
+                      onClose: onClose,
+                      onEdit: onEdit,
+                      onTab: onTab,
+                      onSelected: onSelected,
+                      onAction: onAction,
+                      onChest: onChest,
                     )
                   : _PortraitProfile(
                       size: size,
-                      tab: _tab,
-                      selected: _selected,
-                      name: _name,
-                      onClose: widget.onClose,
-                      onEdit: _editName,
-                      onTab: (tab) => setState(() => _tab = tab),
-                      onSelected: (index) => setState(() => _selected = index),
+                      state: state,
+                      onClose: onClose,
+                      onEdit: onEdit,
+                      onTab: onTab,
+                      onSelected: onSelected,
+                      onAction: onAction,
+                      onChest: onChest,
                     ),
             ),
           ),
@@ -168,9 +89,9 @@ class _ProfilePopupState extends State<ProfilePopup> {
 class _PortraitProfile extends StatelessWidget {
   const _PortraitProfile({
     required this.size,
-    required this.tab,
-    required this.selected,
-    required this.name,
+    required this.state,
+    required this.onAction,
+    required this.onChest,
     required this.onClose,
     required this.onEdit,
     required this.onTab,
@@ -178,13 +99,14 @@ class _PortraitProfile extends StatelessWidget {
   });
 
   final Size size;
-  final ProfileTab tab;
-  final int selected;
-  final String name;
+  final ProfileState state;
+  ProfileTab get tab => state.tab;
+  final VoidCallback onAction;
+  final ValueChanged<String> onChest;
   final VoidCallback onClose;
   final VoidCallback onEdit;
   final ValueChanged<ProfileTab> onTab;
-  final ValueChanged<int> onSelected;
+  final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -205,13 +127,18 @@ class _PortraitProfile extends StatelessWidget {
         ),
         _Header(left: .20 * w, top: -.03 * h, width: .60 * w),
         _Close(left: .83 * w, top: .015 * h, size: .11 * w, onTap: onClose),
-        _Avatar(left: .13 * w, top: .10 * h, width: .3 * w),
+        _Avatar(
+          left: .13 * w,
+          top: .10 * h,
+          width: .3 * w,
+          asset: state.profile!.avatarAsset,
+        ),
         _ProfileRows(
           left: .42 * w,
           top: .11 * h,
           width: .4 * w,
           rowOffsets: [0, .06 * h, .12 * h],
-          name: name,
+          profile: state.profile!,
         ),
         _Edit(left: .77 * w, top: .1 * h, size: .1 * w, onTap: onEdit),
         _Tabs(
@@ -219,6 +146,7 @@ class _PortraitProfile extends StatelessWidget {
           top: .31 * size.height,
           width: .42 * w,
           tab: tab,
+          chestCount: state.chestCount,
           onTab: onTab,
         ),
         _CollectionArea(
@@ -227,9 +155,9 @@ class _PortraitProfile extends StatelessWidget {
           width: (tab == ProfileTab.collection ? .78 : .72) * w,
           height: (tab == ProfileTab.collection ? .40 : .57) * h,
           columns: tab == ProfileTab.collection ? 3 : 2,
-          tab: tab,
-          selected: selected,
+          state: state,
           onSelected: onSelected,
+          onChest: onChest,
         ),
         if (tab == ProfileTab.collection)
           Positioned(
@@ -240,8 +168,14 @@ class _PortraitProfile extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(flex: 62, child: _Detail.inline(selected: selected)),
-                const Expanded(flex: 31, child: _Action.inline()),
+                Expanded(
+                  flex: 62,
+                  child: _Detail.inline(dino: state.selectedDino),
+                ),
+                Expanded(
+                  flex: 31,
+                  child: _Action.inline(state: state, onTap: onAction),
+                ),
               ],
             ),
           ),
@@ -253,9 +187,9 @@ class _PortraitProfile extends StatelessWidget {
 class _LandscapeProfile extends StatelessWidget {
   const _LandscapeProfile({
     required this.size,
-    required this.tab,
-    required this.selected,
-    required this.name,
+    required this.state,
+    required this.onAction,
+    required this.onChest,
     required this.onClose,
     required this.onEdit,
     required this.onTab,
@@ -263,13 +197,14 @@ class _LandscapeProfile extends StatelessWidget {
   });
 
   final Size size;
-  final ProfileTab tab;
-  final int selected;
-  final String name;
+  final ProfileState state;
+  ProfileTab get tab => state.tab;
+  final VoidCallback onAction;
+  final ValueChanged<String> onChest;
   final VoidCallback onClose;
   final VoidCallback onEdit;
   final ValueChanged<ProfileTab> onTab;
-  final ValueChanged<int> onSelected;
+  final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -286,13 +221,18 @@ class _LandscapeProfile extends StatelessWidget {
         ),
         _Header(left: .055 * w, top: .055 * h, width: .285 * w),
         _Close(left: .886 * w, top: .088 * h, size: .066 * w, onTap: onClose),
-        _Avatar(left: .0696 * w, top: .17 * h, width: .2627 * w),
+        _Avatar(
+          left: .0696 * w,
+          top: .17 * h,
+          width: .2627 * w,
+          asset: state.profile!.avatarAsset,
+        ),
         _ProfileRows(
           left: .08 * w,
           top: .5548 * h,
           width: .2413 * w,
           rowOffsets: [0, .084 * h, .1635 * h],
-          name: name,
+          profile: state.profile!,
         ),
         _Edit(left: .28 * w, top: .54 * h, size: .056 * w, onTap: onEdit),
         _Tabs(
@@ -300,6 +240,7 @@ class _LandscapeProfile extends StatelessWidget {
           top: .178 * h,
           width: .28 * w,
           tab: tab,
+          chestCount: state.chestCount,
           onTab: onTab,
         ),
         _CollectionArea(
@@ -308,9 +249,9 @@ class _LandscapeProfile extends StatelessWidget {
           width: (tab == ProfileTab.collection ? .50 : .53) * w,
           height: (tab == ProfileTab.collection ? .52 : .60) * h,
           columns: 3,
-          tab: tab,
-          selected: selected,
+          state: state,
           onSelected: onSelected,
+          onChest: onChest,
         ),
         if (tab == ProfileTab.collection)
           Positioned(
@@ -321,9 +262,15 @@ class _LandscapeProfile extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(flex: 33, child: _Detail.inline(selected: selected)),
+                Expanded(
+                  flex: 33,
+                  child: _Detail.inline(dino: state.selectedDino),
+                ),
                 SizedBox(width: .015 * w),
-                const Expanded(flex: 19, child: _Action.inline()),
+                Expanded(
+                  flex: 19,
+                  child: _Action.inline(state: state, onTap: onAction),
+                ),
               ],
             ),
           ),
@@ -396,7 +343,10 @@ class _Close extends StatelessWidget {
     child: GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Image.asset(ProfileAssets.close),
+      child: Image.asset(
+        ProfileAssets.close,
+        key: const ValueKey('profile-close'),
+      ),
     ),
   );
 }
@@ -421,13 +371,22 @@ class _Edit extends StatelessWidget {
     child: GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Image.asset(ProfileAssets.edit),
+      child: Image.asset(
+        ProfileAssets.edit,
+        key: const ValueKey('profile-edit'),
+      ),
     ),
   );
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.left, required this.top, required this.width});
+  const _Avatar({
+    required this.left,
+    required this.top,
+    required this.width,
+    required this.asset,
+  });
+  final String asset;
 
   static const _assetRatio = 1297 / 1213;
 
@@ -442,26 +401,20 @@ class _Avatar extends StatelessWidget {
     child: Stack(
       alignment: Alignment.center,
       children: [
+        Positioned.fill(
+          child: Image.asset(ProfileAssets.avatarRing, fit: BoxFit.contain),
+        ),
         Align(
           alignment: const Alignment(.01, -.025),
           child: SizedBox.square(
             dimension: width * .69,
             child: ClipOval(
-              child: ColoredBox(
-                color: const Color(0xff58bfff),
-                child: Padding(
-                  padding: EdgeInsets.all(width * .055),
-                  child: Image.asset(
-                    'assets/character/babyDino.webp',
-                    fit: BoxFit.contain,
-                  ),
-                ),
+              child: Padding(
+                padding: EdgeInsets.all(width * .055),
+                child: Image.asset(asset, fit: BoxFit.contain),
               ),
             ),
           ),
-        ),
-        Positioned.fill(
-          child: Image.asset(ProfileAssets.avatarRing, fit: BoxFit.contain),
         ),
       ],
     ),
@@ -474,22 +427,29 @@ class _ProfileRows extends StatelessWidget {
     required this.top,
     required this.width,
     required this.rowOffsets,
-    required this.name,
+    required this.profile,
   });
 
   static const _rowRatio = 1607 / 275;
 
   final double left, top, width;
   final List<double> rowOffsets;
-  final String name;
+  final PlayerProfile profile;
 
   @override
   Widget build(BuildContext context) {
     final rowHeight = width / _rowRatio;
     final rows = [
-      (icon: Icons.person_rounded, text: name, asset: null),
-      (icon: null, text: '12,500', asset: ProfileAssets.coin),
-      (icon: Icons.star_rounded, text: 'Rookie', asset: null),
+      (icon: Icons.person_rounded, text: profile.displayName, asset: null),
+      (
+        icon: null,
+        text: '${profile.coins}'.replaceAllMapped(
+          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        ),
+        asset: ProfileAssets.coin,
+      ),
+      (icon: Icons.star_rounded, text: profile.title, asset: null),
     ];
     return Positioned(
       left: left,
@@ -575,11 +535,13 @@ class _Tabs extends StatelessWidget {
     required this.top,
     required this.width,
     required this.tab,
+    required this.chestCount,
     required this.onTab,
   });
 
   final double left, top, width;
   final ProfileTab tab;
+  final int chestCount;
   final ValueChanged<ProfileTab> onTab;
 
   @override
@@ -599,11 +561,42 @@ class _Tabs extends StatelessWidget {
   Widget _tab(ProfileTab value, String asset, double factor) => Expanded(
     flex: (factor * 10000).round(),
     child: GestureDetector(
+      key: ValueKey('profile-tab-${value.name}'),
       onTap: () => onTab(value),
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 160),
         opacity: tab == value ? 1 : .55,
-        child: Image.asset(asset, fit: BoxFit.fitWidth),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Image.asset(asset, fit: BoxFit.fitWidth),
+            if (value == ProfileTab.chests && chestCount > 0)
+              Positioned(
+                right: 0,
+                top: -6,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
+                    child: Text(
+                      chestCount > 99 ? '99+' : '$chestCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     ),
   );
@@ -616,16 +609,17 @@ class _CollectionArea extends StatelessWidget {
     required this.width,
     required this.height,
     required this.columns,
-    required this.tab,
-    required this.selected,
+    required this.state,
+    required this.onChest,
     required this.onSelected,
   });
 
   final double left, top, width, height;
   final int columns;
-  final ProfileTab tab;
-  final int selected;
-  final ValueChanged<int> onSelected;
+  final ProfileState state;
+  final ValueChanged<String> onChest;
+  ProfileTab get tab => state.tab;
+  final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -639,8 +633,8 @@ class _CollectionArea extends StatelessWidget {
           builder: (context, constraints) {
             final isCollection = tab == ProfileTab.collection;
             final dataLength = isCollection
-                ? _ProfilePopupState._dinos.length
-                : _ProfilePopupState._chests.length;
+                ? state.dinos.length
+                : state.chests.length;
             final itemCount = dataLength + 1;
             final rows = (itemCount / columns).ceil();
             final cardHeightFactor = isCollection ? .9 : .8;
@@ -694,11 +688,27 @@ class _CollectionArea extends StatelessWidget {
                   itemCount: itemCount,
                   itemBuilder: (context, index) => isCollection
                       ? _DinoCard(
-                          index: index,
-                          selected: selected == index,
-                          onTap: () => onSelected(index),
+                          dino: index < state.dinos.length
+                              ? state.dinos[index]
+                              : null,
+                          selected:
+                              index < state.dinos.length &&
+                              state.selectedDinoId == state.dinos[index].id,
+                          onTap: index < state.dinos.length
+                              ? () => onSelected(state.dinos[index].id)
+                              : null,
                         )
-                      : _ChestCard(index: index),
+                      : _ChestCard(
+                          chest: index < state.chests.length
+                              ? state.chests[index]
+                              : null,
+                          onTap:
+                              index < state.chests.length &&
+                                  state.chests[index].quantity > 0 &&
+                                  !state.actionBusy
+                              ? () => onChest(state.chests[index].id)
+                              : null,
+                        ),
                 ),
               ),
             );
@@ -748,24 +758,25 @@ class _OverlappingGridDelegate extends SliverGridDelegate {
 
 class _DinoCard extends StatelessWidget {
   const _DinoCard({
-    required this.index,
+    required this.dino,
     required this.selected,
     required this.onTap,
   });
 
-  final int index;
+  final DinoCollectionItem? dino;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final future = index == _ProfilePopupState._dinos.length;
-    final d = future ? null : _ProfilePopupState._dinos[index];
-    final locked = future || (d!.fragments == 0);
+    final d = dino;
+    final future = d == null;
+    final locked = future || (d.fragments == 0);
     final skin = selected
         ? ProfileAssets.cardSelected
         : ProfileAssets.cardLocked;
     return GestureDetector(
+      key: ValueKey(d == null ? 'dino-soon' : 'dino-${d.id}'),
       onTap: future ? null : onTap,
       child: LayoutBuilder(
         builder: (context, constraints) => Stack(
@@ -831,7 +842,7 @@ class _DinoCard extends StatelessWidget {
                               Colors.transparent,
                               BlendMode.dst,
                             ),
-                      child: Image.asset(d!.asset, fit: BoxFit.contain),
+                      child: Image.asset(d.asset, fit: BoxFit.contain),
                     ),
             ),
             Positioned(
@@ -842,7 +853,7 @@ class _DinoCard extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  future ? 'SOON' : '${d!.fragments}/8',
+                  future ? 'SOON' : '${d.fragments}/${d.fragmentGoal}',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: constraints.maxWidth * .09,
@@ -863,85 +874,82 @@ class _DinoCard extends StatelessWidget {
 }
 
 class _ChestCard extends StatelessWidget {
-  const _ChestCard({required this.index});
+  const _ChestCard({required this.chest, required this.onTap});
 
-  final int index;
+  final ProfileChest? chest;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final future = index == _ProfilePopupState._chests.length;
-    final chest = future ? null : _ProfilePopupState._chests[index];
+    final chest = this.chest;
+    final future = chest == null;
 
-    return LayoutBuilder(
-      builder: (context, constraints) => Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(ProfileAssets.cardNormal, fit: BoxFit.fill),
-          ),
-          Positioned(
-            left: constraints.maxWidth * .12,
-            right: constraints.maxWidth * .12,
-            top: constraints.maxHeight * .02,
-            bottom: constraints.maxHeight * .15,
-            child: future
-                ? Center(
-                    child: Icon(
-                      Icons.question_mark_rounded,
-                      color: Colors.blueAccent,
-                      size:
-                          math.min(
-                            constraints.maxWidth,
-                            constraints.maxHeight,
-                          ) *
-                          .38,
+    return GestureDetector(
+      key: ValueKey(future ? 'chest-soon' : chest.id),
+      onTap: onTap,
+      child: Opacity(
+        opacity: !future && chest.quantity == 0 ? .5 : 1,
+        child: LayoutBuilder(
+          builder: (context, constraints) => Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(ProfileAssets.cardNormal, fit: BoxFit.fill),
+              ),
+              Positioned(
+                left: constraints.maxWidth * .12,
+                right: constraints.maxWidth * .12,
+                top: constraints.maxHeight * .02,
+                bottom: constraints.maxHeight * .15,
+                child: future
+                    ? Center(
+                        child: Icon(
+                          Icons.question_mark_rounded,
+                          color: Colors.blueAccent,
+                          size:
+                              math.min(
+                                constraints.maxWidth,
+                                constraints.maxHeight,
+                              ) *
+                              .38,
+                        ),
+                      )
+                    : Transform.scale(
+                        scale: 0.75,
+                        child: Image.asset(chest.asset, fit: BoxFit.contain),
+                      ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: constraints.maxHeight * .1,
+                child: Center(
+                  child: Text(
+                    future ? 'SOON' : 'x${chest.quantity}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: constraints.maxWidth * .1,
+                      fontWeight: FontWeight.w900,
                     ),
-                  )
-                : Transform.scale(
-                    scale: 0.75,
-                    child: Image.asset(chest!.asset, fit: BoxFit.contain),
                   ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: constraints.maxHeight * .1,
-            child: Center(
-              child: Text(
-                future ? 'SOON' : 'x${chest!.quantity}',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: constraints.maxWidth * .1,
-                  fontWeight: FontWeight.w900,
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class _Detail extends StatelessWidget {
-  const _Detail({
-    required this.left,
-    required this.top,
-    required this.width,
-    required this.selected,
-  });
-
-  const _Detail.inline({required this.selected})
-    : left = null,
-      top = null,
-      width = null;
-
-  final double? left, top, width;
-  final int selected;
+  const _Detail.inline({required this.dino});
+  final DinoCollectionItem? dino;
+  final double? left = null, top = null, width = null;
 
   @override
   Widget build(BuildContext context) {
-    final i = math.min(selected, _ProfilePopupState._dinos.length - 1);
-    final d = _ProfilePopupState._dinos[i];
+    final d = dino;
+    if (d == null) return const SizedBox.expand();
     final rarityColor = switch (d.rarity.toLowerCase()) {
       'common' => const Color(0xff6b8f3a),
       'rare' => const Color(0xff2f7fd8),
@@ -1067,16 +1075,19 @@ class _Detail extends StatelessWidget {
 }
 
 class _Action extends StatelessWidget {
-  const _Action({required this.left, required this.top, required this.width});
-
-  const _Action.inline() : left = null, top = null, width = null;
+  const _Action.inline({required this.state, required this.onTap});
+  final ProfileState state;
+  final VoidCallback onTap;
+  final double? left = null, top = null, width = null;
+  bool get enabled =>
+      !state.actionBusy &&
+      state.selectedDino != null &&
+      state.selectedDino!.status != DinoCollectionStatus.equipped;
 
   // The button asset has less transparent vertical padding than the detail
   // asset. Keep the painted borders the same visual height when both widgets
   // share a stretched Row.
   static const _inlineHeightFactor = .7;
-
-  final double? left, top, width;
 
   Widget _content(double contentWidth, {double? contentHeight}) {
     final panel = Stack(
@@ -1093,7 +1104,9 @@ class _Action extends StatelessWidget {
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
-                'FIND MORE',
+                state.actionBusy
+                    ? '...'
+                    : state.selectedDino?.status.label ?? '',
                 maxLines: 1,
                 style: TextStyle(
                   color: Colors.white,
@@ -1110,7 +1123,23 @@ class _Action extends StatelessWidget {
       ],
     );
     if (contentHeight != null) {
-      return SizedBox(width: contentWidth, height: contentHeight, child: panel);
+      return Semantics(
+        button: true,
+        enabled: enabled,
+        label: state.selectedDino?.status.label,
+        child: GestureDetector(
+          key: const ValueKey('profile-action'),
+          onTap: enabled ? onTap : null,
+          child: Opacity(
+            opacity: enabled ? 1 : .5,
+            child: SizedBox(
+              width: contentWidth,
+              height: contentHeight,
+              child: panel,
+            ),
+          ),
+        ),
+      );
     }
     return AspectRatio(aspectRatio: 1959 / 768, child: panel);
   }

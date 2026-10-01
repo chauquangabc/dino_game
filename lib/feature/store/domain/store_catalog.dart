@@ -1,4 +1,4 @@
-import '../../home/domain/map_character_config.dart';
+import '../../profile/domain/profile_catalog.dart';
 import 'store_category.dart';
 import 'store_product.dart';
 
@@ -185,22 +185,20 @@ abstract final class StoreCatalog {
       grantType: StoreGrantType.coins,
       grantId: 'coins_l',
     ),
-    ...MapCharacterConfig.characters
-        .skip(1)
-        .map(
-          (character) => StoreProduct(
-            id: 'dino_${character.id}',
-            category: StoreCategory.dino,
-            name: character.name.toUpperCase(),
-            quantity: 1,
-            price: 6000,
-            assetPath: character.asset,
-            sortOrder: 10 + MapCharacterConfig.characters.indexOf(character),
-            grantType: StoreGrantType.dino,
-            grantId: character.id,
-            isUnique: true,
-          ),
-        ),
+    ...ProfileCatalog.dinos.map(
+      (character) => StoreProduct(
+        id: 'dino_${character.id}',
+        category: StoreCategory.dino,
+        name: character.name.toUpperCase(),
+        quantity: 1,
+        price: character.storePrice,
+        assetPath: character.asset,
+        sortOrder: 10 + ProfileCatalog.dinos.indexOf(character),
+        grantType: StoreGrantType.dino,
+        grantId: character.id,
+        isUnique: true,
+      ),
+    ),
     const StoreProduct(
       id: 'pet_triceratops',
       category: StoreCategory.pet,

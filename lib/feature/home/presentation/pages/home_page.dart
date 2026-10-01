@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -43,6 +44,38 @@ class _HomePageState extends State<HomePage> {
   int _avatarLevel = 1;
   bool _avatarMoving = false;
   MapCharacter _selectedCharacter = MapCharacterConfig.babyDino;
+  StreamSubscription<void>? _characterSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _characterSubscription = _characterRepository.changes.listen(
+      (_) => _reloadCharacter(),
+    );
+  }
+
+  Future<void> _reloadCharacter() async {
+    try {
+      final character = await _characterRepository.loadEquipped();
+      if (mounted && character.id != _selectedCharacter.id) {
+        setState(() => _selectedCharacter = character);
+      }
+    } catch (error, stack) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'home profile refresh',
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _characterSubscription?.cancel();
+    super.dispose();
+  }
 
   ImageProvider<Object> _imageProvider(int number, int decodeWidth) {
     return ResizeImage.resizeIfNeeded(
@@ -219,6 +252,7 @@ class _HomePageState extends State<HomePage> {
                 right: mediaQuery.padding.right + 8,
                 child: _HomeHud(
                   viewport: viewport,
+                  avatarAsset: _selectedCharacter.asset,
                   onProfile: () => context.push(ProfileRouter.path),
                   onStore: () => context.push(StoreRouter.path),
                   onFarm: () => context.push(FarmRouter.path),
@@ -754,6 +788,7 @@ class _LevelCheckpointState extends State<_LevelCheckpoint>
 class _HomeHud extends StatelessWidget {
   const _HomeHud({
     required this.viewport,
+    required this.avatarAsset,
     required this.onProfile,
     required this.onStore,
     required this.onFarm,
@@ -762,6 +797,7 @@ class _HomeHud extends StatelessWidget {
   });
 
   final Size viewport;
+  final String avatarAsset;
   final VoidCallback onProfile;
   final VoidCallback onStore;
   final VoidCallback onFarm;
@@ -828,7 +864,27 @@ class _HomeHud extends StatelessWidget {
                 top: _slotY * height - slotSize / 2,
                 width: slotSize,
                 height: slotSize,
-                child: _HudButton(action: actions[i]),
+                child: i == 0
+                    ? GestureDetector(
+                        onTap: onProfile,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Image.asset(actions[i].asset, fit: BoxFit.contain),
+                            FractionallySizedBox(
+                              widthFactor: .69,
+                              heightFactor: .69,
+                              child: ClipOval(
+                                child: Image.asset(
+                                  avatarAsset,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _HudButton(action: actions[i]),
               ),
               // Bảng tên dưới bệ đá.
               Positioned(

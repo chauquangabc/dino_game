@@ -31,55 +31,86 @@ class _LuckyWheelPageState extends State<LuckyWheelPage> {
   }
 
   Future<void> _load() async {
-    final state = await _repository.load();
-    if (!mounted) return;
-    setState(() => _state = state);
+    try {
+      final state = await _repository.load();
+      if (!mounted) return;
+      setState(() => _state = state);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _state = _state.copyWith(isLoading: false));
+        _showMessage('Could not load rewards. Please reopen Lucky Wheel.');
+      }
+    }
   }
 
   Future<void> _plusTurn() async {
-    final next = await _repository.plusTurn(_state);
+    if (_state.isLoading || _state.isSpinning || _state.isClaiming) return;
+    try {
+      final next = await _repository.plusTurn(_state);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _state = next;
-    });
+      setState(() {
+        _state = next;
+      });
+    } catch (_) {
+      if (mounted) _showMessage('Could not save the turn. Please try again.');
+    }
   }
 
   Future<void> _spin() async {
-    if (_state.isSpinning || _state.spins <= 0) {
+    if (_state.isLoading || _state.isSpinning || _state.pendingResult != null) {
+      return;
+    }
+    if (_state.spins <= 0) {
       _showMessage('No spins left today');
       return;
     }
     setState(
       () => _state = _state.copyWith(isSpinning: true, clearMessage: true),
     );
-    final next = await _repository.spin(_state);
-    final result = next.pendingResult;
-    if (!mounted || result == null) {
-      if (mounted) setState(() => _state = next.copyWith(isSpinning: false));
-      return;
+    try {
+      final next = await _repository.spin(_state);
+      final result = next.pendingResult;
+      if (!mounted || result == null) {
+        if (mounted) setState(() => _state = next.copyWith(isSpinning: false));
+        return;
+      }
+      const segmentCount = 8;
+      final target =
+          ((segmentCount - result.segmentIndex) % segmentCount) / segmentCount;
+      final current = ((_wheelTurns % 1) + 1) % 1;
+      var delta = target - current;
+      if (delta < 0) delta += 1;
+      setState(() {
+        _state = next.copyWith(isSpinning: true);
+        _wheelTurns += 5 + delta;
+      });
+      await Future<void>.delayed(LuckyWheelCatalog.spinDuration);
+      if (mounted) setState(() => _state = _state.copyWith(isSpinning: false));
+    } catch (_) {
+      await _load();
+      if (mounted) {
+        setState(() => _state = _state.copyWith(isSpinning: false));
+        _showMessage('Could not finish the spin. Please try again.');
+      }
     }
-    const segmentCount = 8;
-    final target =
-        ((segmentCount - result.segmentIndex) % segmentCount) / segmentCount;
-    final current = ((_wheelTurns % 1) + 1) % 1;
-    var delta = target - current;
-    if (delta < 0) delta += 1;
-    setState(() {
-      _state = next.copyWith(isSpinning: true);
-      _wheelTurns += 5 + delta;
-    });
-    await Future<void>.delayed(LuckyWheelCatalog.spinDuration);
-    if (mounted) setState(() => _state = _state.copyWith(isSpinning: false));
   }
 
   Future<void> _claim() async {
     if (_state.isClaiming) return;
     setState(() => _state = _state.copyWith(isClaiming: true));
-    final next = await _repository.claim(_state);
-    if (!mounted) return;
-    setState(() => _state = next.copyWith(isClaiming: false));
+    try {
+      final next = await _repository.claim(_state);
+      if (!mounted) return;
+      setState(() => _state = next.copyWith(isClaiming: false));
+    } catch (_) {
+      await _load();
+      if (mounted) {
+        setState(() => _state = _state.copyWith(isClaiming: false));
+        _showMessage('Could not save rewards. Please try again.');
+      }
+    }
   }
 
   void _showMessage(String message) {

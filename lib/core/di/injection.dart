@@ -4,10 +4,24 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
 import '../network/dio_client.dart';
+import '../storage/game_local_store.dart';
+import '../../feature/profile/data/profile_repository.dart';
+import '../../feature/profile/data/dino_collection_repository.dart';
+import '../../feature/profile/data/chest_repository.dart';
 
 final sl = GetIt.instance;
 
 void configureDependencies() {
+  sl.registerLazySingleton<GameLocalStore>(() => GameLocalStore.shared);
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepository(store: sl<GameLocalStore>()),
+  );
+  sl.registerLazySingleton<DinoCollectionRepository>(
+    () => DinoCollectionRepository(store: sl<GameLocalStore>()),
+  );
+  sl.registerLazySingleton<ChestRepository>(
+    () => ChestRepository(store: sl<GameLocalStore>()),
+  );
   sl.registerLazySingleton<SecureStorage>(SecureStorage.new);
 
   sl.registerLazySingleton<SessionManager>(
