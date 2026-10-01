@@ -82,6 +82,10 @@ flutter:
     - assets/store/pets/
     - assets/lucky_wheel/
     - assets/profile/
+    - assets/farm/
+    - assets/farm/triceratops/
+    - assets/farm/t-rex/
+    - assets/farm/pteranodon/
 
 flutter_native_splash:
   color: "#183B31"

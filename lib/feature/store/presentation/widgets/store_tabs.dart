@@ -18,21 +18,25 @@ class StoreTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final categories = StoreCategory.values;
+    final availableWidth = panelWidth * .86;
     final factor = ((.86 / categories.length - .004) / .83).clamp(0.0, .2425);
     final tabWidth = panelWidth * factor;
     final tabHeight = panelWidth * .2425;
-    final overlap = panelWidth * (factor * .085 - .002);
+    final step = categories.length > 1
+        ? (availableWidth - tabWidth) / (categories.length - 1)
+        : 0.0;
 
     return Positioned(
       left: panelWidth * .0715,
       top: panelWidth * .3151,
-      width: panelWidth * .86,
+      width: availableWidth,
       height: tabHeight,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           for (var i = 0; i < categories.length; i++)
             Positioned(
-              left: i * (tabWidth - overlap * 2),
+              left: i * step,
               width: tabWidth,
               height: tabHeight,
               child: _StoreTab(

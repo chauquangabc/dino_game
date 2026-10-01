@@ -23,8 +23,10 @@ class ProfilePage extends StatefulWidget {
     this.repository,
     this.initialTab = ProfileTab.collection,
   });
+
   final ProfileRepository? repository;
   final ProfileTab initialTab;
+
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
@@ -321,6 +323,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
 extension ProfileRouter on ProfilePage {
   static const path = '/profile';
+
   static GoRoute goRoute() => GoRoute(
     path: path,
     pageBuilder: (context, state) => CustomTransitionPage<void>(

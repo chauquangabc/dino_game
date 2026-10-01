@@ -66,7 +66,11 @@ class StoreRepository {
     ).copyWith(selectedCategory: state.selectedCategory);
     StorePurchaseResult result(String message) =>
         StorePurchaseResult(state: current, message: message);
-    if (product.isIap) return result('IAP is not connected yet');
+    // Temporary local grant for coin packs. Replace this branch with the IAP
+    // receipt flow once store billing is connected.
+    if (product.isIap && product.grantType != StoreGrantType.coins) {
+      return result('IAP is not connected yet');
+    }
     if (isOwned(current, product)) return result('Already owned');
     final price = product.price.toInt();
     if (current.coins < price) return result('Not enough coins');
@@ -106,7 +110,12 @@ class StoreRepository {
           },
         });
       case StoreGrantType.coins:
-        return result('IAP is not connected yet');
+        save.values[GameStorageKeys.coins] =
+            '${(current.coins + product.quantity).clamp(0, 0x7fffffff)}';
+        return StorePurchaseResult(
+          state: _read(save).copyWith(selectedCategory: state.selectedCategory),
+          message: 'Added ${product.quantity} coins',
+        );
     }
     save.values[GameStorageKeys.coins] = '${current.coins - price}';
     return StorePurchaseResult(
